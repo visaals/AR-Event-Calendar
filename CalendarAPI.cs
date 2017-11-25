@@ -8,126 +8,139 @@ using System.Xml.Linq;
 using System.Linq;
 using System.Globalization;
 using AssemblyCSharp;
-
+using Timeline;
 /**
  * TODO: 
  * Have sendPostRequest throw errors instead of returning a string
  * Convert list of CalendarEvents to list of GameObjects
  * 
  * */
+namespace ARCalendar
+{
+	public class CalendarAPI : MonoBehaviour {
 
-public class CalendarAPI : MonoBehaviour {
+		public CalendarAPI()
+		{
+			
+		}
 
-	// Use this for initialization
-	void Start () {
-		
-		string duc_url = "https://reserve.wustl.edu/eventdataexports/DUC4WindsEntry.xml";
-		string duc_funroom_url = "https://reserve.wustl.edu/eventdataexports/DUC4WindsFunRoom.xml";
-		string olin_url = "https://reserve.wustl.edu/eventdataexports/OlinSign.xml";
+		// Use this for initialization
+		void Start () {
+			
+			string duc_url = "https://reserve.wustl.edu/eventdataexports/DUC4WindsEntry.xml";
+			string duc_funroom_url = "https://reserve.wustl.edu/eventdataexports/DUC4WindsFunRoom.xml";
+			string olin_url = "https://reserve.wustl.edu/eventdataexports/OlinSign.xml";
 
-		this.updateEventList (olin_url);
+			//this.updateEventList (olin_url, "DUC276");
 
-	}
-
-	public List<GameObject> updateEventList(string url)
-	{
-
-		// send the request to get response text
-		string responseText = this.sendPostRequest (url);
-		// format the response text
-		string xmlResponse = this.cleanXmlResponseString(responseText);
-
-		// convert XmlDocument to list of game objects
-		List<CalendarEvent> eventList = this.convertXmlToEventList(xmlResponse);
-	
-	
-		List<GameObject> temp = new List<GameObject> ();
-
-		return temp;
-
-	}
-
-
-	private List<CalendarEvent> convertXmlToEventList(string xmlResponse)
-	{
-		XmlDocument eventXmlDoc = new XmlDocument ();
-		eventXmlDoc.LoadXml (xmlResponse);
-
-		List<CalendarEvent> eventList = new List<CalendarEvent> ();
-
-		// For each event Node, 
-		//	put all the event children into an array (inner for loop)
-		//	create a calendarEvent object from that array
-		//	append the calendarEvent object to the list
-		// 	return the List of CalendarEvents
-		foreach (XmlNode eventNode in eventXmlDoc.DocumentElement) 
+		}
+		//List<CalendarEvent>
+		public void updateEventList(string url, string location)
 		{
 
-			string[] eventParams = new string[eventNode.ChildNodes.Count];
+			// send the request to get response text
+			string responseText = this.sendPostRequest (url);
 
-			for (int i = 0; i < eventNode.ChildNodes.Count; i++) 
+			// format the response text
+			string xmlResponse = this.cleanXmlResponseString(responseText);
+	
+			// convert XmlDocument to list of game objects
+			List<CalendarEvent> eventList = this.convertXmlToEventList(xmlResponse);
+
+			List<CalendarEvent> roomEvents = new List<CalendarEvent> ();
+
+			foreach (var e in eventList) 
 			{
-				eventParams[i] = eventNode.ChildNodes.Item(i).InnerText;
+				if (e.Location == location) 
+				{
+					roomEvents.Add (e);
+					Debug.Log(e.ToString ());
+				}
+
 			}
 
-			// create a calendar event object from the eventParams array
-			CalendarEvent calendarEvent = new CalendarEvent (eventParams);
+			CalendarTimeline ct = new CalendarTimeline (roomEvents);
+			ct.drawTimeLine();
 
-			eventList.Add (calendarEvent);
+
+			//List<GameObject> temp = new List<GameObject> ();
+
+			//return roomEvents;
 
 		}
 
-		// sort event list
 
-//		foreach (var i in sortedEventList)
-//		{
-//			Debug.Log (i.ToString ());
-//
-//		}
-//
-//		Debug.Log ("done");
+		private List<CalendarEvent> convertXmlToEventList(string xmlResponse)
+		{
+			XmlDocument eventXmlDoc = new XmlDocument ();
+			eventXmlDoc.LoadXml (xmlResponse);
 
-		return eventList;
+			List<CalendarEvent> eventList = new List<CalendarEvent> ();
 
-	}
+			// For each event Node, 
+			//	put all the event children into an array (inner for loop)
+			//	create a calendarEvent object from that array
+			//	append the calendarEvent object to the list
+			// 	return the List of CalendarEvents
+			foreach (XmlNode eventNode in eventXmlDoc.DocumentElement) 
+			{
 
-	private string sendPostRequest(string url)
-	{
-		WWW post_request = new WWW (url);
+				string[] eventParams = new string[eventNode.ChildNodes.Count];
 
-		while (!post_request.isDone) {
-			Debug.Log ("Loading events...");
+				for (int i = 0; i < eventNode.ChildNodes.Count; i++) 
+				{
+					eventParams[i] = eventNode.ChildNodes.Item(i).InnerText;
+				}
+
+				// create a calendar event object from the eventParams array
+				CalendarEvent calendarEvent = new CalendarEvent (eventParams);
+
+				eventList.Add (calendarEvent);
+
+			}
+
+			return eventList;
+
 		}
 
-		if (post_request.error == null) {
+		private string sendPostRequest(string url)
+		{
+			WWW post_request = new WWW (url);
+
+			while (!post_request.isDone) {
+				Debug.Log ("Loading events...");
+			}
+
+			if (post_request.error == null) {
+				
+				Debug.Log ("POST Request Successful.");
+
+				return post_request.text;
+
+			} else {
+				
+				Debug.Log("POST Request Failure: " + post_request.error);
+
+				return post_request.error;
+			}
+		}
+
+
+		private string cleanXmlResponseString(string response){
 			
-			Debug.Log ("POST Request Successful.");
+			// get rid of UTF-8 BOM
+			System.IO.StringReader stringReader = new System.IO.StringReader(response);
+			stringReader.Read(); // skip BOM
+			System.Xml.XmlReader.Create(stringReader);
+			string loadableXmlResponse = stringReader.ReadToEnd ();
 
-			return post_request.text;
+			return loadableXmlResponse;
 
-		} else {
-			
-			Debug.Log("POST Request Failure: " + post_request.error);
-
-			return post_request.error;
 		}
-	}
-
-
-	private string cleanXmlResponseString(string response){
-		
-		// get rid of UTF-8 BOM
-		System.IO.StringReader stringReader = new System.IO.StringReader(response);
-		stringReader.Read(); // skip BOM
-		System.Xml.XmlReader.Create(stringReader);
-		string loadableXmlResponse = stringReader.ReadToEnd ();
-
-		return loadableXmlResponse;
-
-	}
-		
-	// Update is called once per frame
-	void Update () {
-		
+			
+		// Update is called once per frame
+		void Update () {
+			
+		}
 	}
 }

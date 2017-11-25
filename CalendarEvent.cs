@@ -31,7 +31,7 @@ namespace AssemblyCSharp
 			this.LocationFull = locationFull;
 			this.Start = DateTime.Parse(start);
 			this.End = DateTime.Parse(end);
-			this.Date = DateTime.ParseExact(date, "MM/dd/yyy", CultureInfo.InvariantCulture);
+			this.Date = DateTime.Parse(date);
 			this.Categories = categories;
 			this.LastModifiedName = lastModifiedName;
 			this.LastModifiedTime = DateTime.Parse(lastModifiedTime);
@@ -48,7 +48,7 @@ namespace AssemblyCSharp
 			this.LocationFull = eventParams[2];
 			this.Start = DateTime.Parse(eventParams[3]);
 			this.End = DateTime.Parse(eventParams[4]);
-			this.Date = DateTime.ParseExact(eventParams[5], "MM/dd/yyy", CultureInfo.InvariantCulture);
+			this.Date = DateTime.Parse(eventParams[5]);
 			this.Categories = eventParams[6];
 			this.LastModifiedName = eventParams[7];
 			this.LastModifiedTime = DateTime.Parse(eventParams[8]);
@@ -57,7 +57,7 @@ namespace AssemblyCSharp
 
 		}
 	
-		public GameObject createBlock()
+		public GameObject convertToGameObject()
 		{
 			GameObject go = new GameObject ();
 			return go;

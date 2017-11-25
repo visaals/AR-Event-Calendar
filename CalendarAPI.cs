@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
 using System.Xml.Linq;
+using System.Linq;
 using System.Globalization;
 using AssemblyCSharp;
 
@@ -20,8 +21,11 @@ public class CalendarAPI : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		
-		string url = "https://reserve.wustl.edu/eventdataexports/DUC4WindsEntry.xml";
-		this.updateEventList (url);
+		string duc_url = "https://reserve.wustl.edu/eventdataexports/DUC4WindsEntry.xml";
+		string duc_funroom_url = "https://reserve.wustl.edu/eventdataexports/DUC4WindsFunRoom.xml";
+		string olin_url = "https://reserve.wustl.edu/eventdataexports/OlinSign.xml";
+
+		this.updateEventList (olin_url);
 
 	}
 
@@ -35,7 +39,8 @@ public class CalendarAPI : MonoBehaviour {
 
 		// convert XmlDocument to list of game objects
 		List<CalendarEvent> eventList = this.convertXmlToEventList(xmlResponse);
-
+	
+	
 		List<GameObject> temp = new List<GameObject> ();
 
 		return temp;
@@ -72,6 +77,16 @@ public class CalendarAPI : MonoBehaviour {
 
 		}
 
+		// sort event list
+
+//		foreach (var i in sortedEventList)
+//		{
+//			Debug.Log (i.ToString ());
+//
+//		}
+//
+//		Debug.Log ("done");
+
 		return eventList;
 
 	}
@@ -79,6 +94,10 @@ public class CalendarAPI : MonoBehaviour {
 	private string sendPostRequest(string url)
 	{
 		WWW post_request = new WWW (url);
+
+		while (!post_request.isDone) {
+			Debug.Log ("Loading events...");
+		}
 
 		if (post_request.error == null) {
 			

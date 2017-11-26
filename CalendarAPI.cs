@@ -11,44 +11,44 @@ using AssemblyCSharp;
 using Timeline;
 /**
  * TODO: 
- * Have sendPostRequest throw errors instead of returning a string
- * Convert list of CalendarEvents to list of GameObjects
+ *	 Have sendPostRequest throw errors instead of returning a string
  * 
  * */
 namespace ARCalendar
 {
 	public class CalendarAPI : MonoBehaviour {
+		
+		public string duc_url = "https://reserve.wustl.edu/eventdataexports/DUC4WindsEntry.xml";
+		public string duc_funroom_url = "https://reserve.wustl.edu/eventdataexports/DUC4WindsFunRoom.xml";
+		public string olin_url = "https://reserve.wustl.edu/eventdataexports/OlinSign.xml";
+
+		public CalendarTimeline currentTimeline = new CalendarTimeline ();
+		public List<CalendarEvent> eventList = new List<CalendarEvent>();
 
 		public CalendarAPI()
 		{
-			
+			// empty constructor
 		}
 
-		// Use this for initialization
 		void Start () {
 			
-			string duc_url = "https://reserve.wustl.edu/eventdataexports/DUC4WindsEntry.xml";
-			string duc_funroom_url = "https://reserve.wustl.edu/eventdataexports/DUC4WindsFunRoom.xml";
-			string olin_url = "https://reserve.wustl.edu/eventdataexports/OlinSign.xml";
+			// calendar is updated on startup
+			this.updateEventList (duc_url);
+		
+		}
 
-			//this.updateEventList (olin_url, "DUC276");
+		// Update is called once per frame
+		void Update () {
+	
 
 		}
-		//List<CalendarEvent>
-		public void updateEventList(string url, string location)
+
+		// draw the timeline without updating the events
+		public void drawCalendar(string location)
 		{
 
-			// send the request to get response text
-			string responseText = this.sendPostRequest (url);
-
-			// format the response text
-			string xmlResponse = this.cleanXmlResponseString(responseText);
-	
-			// convert XmlDocument to list of game objects
-			List<CalendarEvent> eventList = this.convertXmlToEventList(xmlResponse);
-
 			List<CalendarEvent> roomEvents = new List<CalendarEvent> ();
-
+			// filter events of specified room
 			foreach (var e in eventList) 
 			{
 				if (e.Location == location) 
@@ -59,13 +59,27 @@ namespace ARCalendar
 
 			}
 
-			CalendarTimeline ct = new CalendarTimeline (roomEvents);
-			ct.drawTimeLine();
+			// update the events in the current timeline
+			this.currentTimeline.updateEvents (roomEvents);
+			// draw it
+			this.currentTimeline.drawTimeLine ();
+		}
 
 
-			//List<GameObject> temp = new List<GameObject> ();
 
-			//return roomEvents;
+		public void updateEventList(string url)
+		{
+
+			// send the request to get response text
+			string responseText = this.sendPostRequest (url);
+
+			// format the response text
+			string xmlResponse = this.cleanXmlResponseString(responseText);
+	
+			// convert XmlDocument to list of game objects
+			// updated eventlist to most up to date events
+			eventList = this.convertXmlToEventList(xmlResponse);
+
 
 		}
 
@@ -138,9 +152,6 @@ namespace ARCalendar
 
 		}
 			
-		// Update is called once per frame
-		void Update () {
-			
-		}
+
 	}
 }

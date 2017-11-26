@@ -8,13 +8,24 @@ namespace Timeline
 {
 	public class CalendarTimeline : MonoBehaviour {
 
-		List<CalendarEvent> eventList;
+		private List<CalendarEvent> eventList;
+
+		// default constructor
+		public CalendarTimeline()
+		{
+			
+		}
 
 		public CalendarTimeline (List<CalendarEvent> eventList)
 		{
-			eventList = eventList.OrderBy (o => o.Start).ToList ();
-			this.updateGameObjects ();
+			this.eventList = eventList.OrderBy (o => o.Start).ToList ();
 		}
+
+		public void updateEvents(List<CalendarEvent> eventList)
+		{
+			this.eventList = eventList.OrderBy (o => o.Start).ToList ();
+		}
+
 
 		// this should draw the updated game objects in a time line view
 		public void drawTimeLine()
